@@ -1,0 +1,34 @@
+---
+
+- name: BACKUP SWITCH CONFIGURATIONS
+  connection: network_cli
+  gather_facts: no
+  hosts: Home
+
+  tasks:
+    - name: Backup config for IOS devices
+      ios_config:
+        backup: yes
+      register: config_output
+
+    - name: Create backup directory
+      file:
+        path: ./backup_new
+        state: directory
+
+    - name: RENAME BACKUP
+      copy:
+        src: "{{config_output.backup_path}}"
+        dest: "./backup/{{inventory_hostname}}.config"
+
+    - name: REMOVE NON CONFIG LINES
+      blockinfile:
+        path: "./backup/{{inventory_hostname}}.config"
+        marker_end: "15.2"
+        block: ""
+
+#    - name: REMOVE NON CONFIG LINES
+#      lineinfile:
+#        path: "./backup/{{inventory_hostname}}.config"
+#        regexp: "Building configuration..."
+#        state: absent
